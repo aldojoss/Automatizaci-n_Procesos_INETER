@@ -104,8 +104,6 @@
   table.compliance{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.compliance th{text-align:left;background:var(--navy);color:#fff;padding:7px 8px;font-weight:600;font-size:11px;text-transform:uppercase;}
   table.compliance td{padding:6px 8px;border-bottom:1px solid var(--border);}
-  table.compliance tr.critical td{background:#FFF0F0;}
-  table.compliance tr.critical td:first-child{border-left:3px solid var(--red);font-weight:700;}
   .pct-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11.5px;color:#fff;}
 
   .detail-panel .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
@@ -185,7 +183,7 @@
 
   <div class="kpi-grid">
     <div class="kpi-card kpi-ejecucion">
-      <div class="kpi-label">Nivel de Ejecución</div>
+      <div class="kpi-label">Nivel de Ejecución (DGCE: Avanzando según PAC + Desiertos)</div>
       <div class="kpi-value" id="kpiEjecucion">--%</div>
       <div class="kpi-sub" id="kpiEjecucionSub">Listos + Desiertos / Total</div>
     </div>
@@ -241,6 +239,17 @@
     </div>
   </div>
 
+  <div class="charts-row2">
+    <div class="chart-box">
+      <h3>Procedimientos de Contratación (Cantidad)</h3>
+      <div class="chart-wrap" style="height:220px;"><canvas id="barProcedimientos"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Procesos por Modalidad de Contratación</h3>
+      <div class="chart-wrap" style="height:220px;"><canvas id="barModalidad"></canvas></div>
+    </div>
+  </div>
+
   <div class="chart-box" style="margin-bottom:20px;">
     <h3>Cumplimiento mensual del PAC</h3>
     <div class="table-scroll" style="max-height:280px;">
@@ -250,17 +259,6 @@
         </thead>
         <tbody></tbody>
       </table>
-    </div>
-  </div>
-
-  <div class="charts-row2">
-    <div class="chart-box">
-      <h3>Procedimientos de Contratación (Cantidad)</h3>
-      <div class="chart-wrap" style="height:220px;"><canvas id="barProcedimientos"></canvas></div>
-    </div>
-    <div class="chart-box">
-      <h3>Procesos por Modalidad de Contratación</h3>
-      <div class="chart-wrap" style="height:220px;"><canvas id="barModalidad"></canvas></div>
     </div>
   </div>
 
@@ -276,7 +274,7 @@
           <tr>
             <th>Área</th>
             <th class="col-linea">#Línea</th>
-            <th>CBS</th>
+            <th>Modalidad</th>
             <th>Descripción</th>
             <th style="text-align:right;">Monto Estimado</th>
             <th>Estado</th>
@@ -308,12 +306,16 @@ const MES_LABEL = {ene:"Enero",feb:"Febrero",mar:"Marzo",abr:"Abril",may:"Mayo",
 const ESTADO_R_COLOR = {
   "Listos": "#A9D18E",
   "En Proceso de Mejora": "#FFC000",
-  "En Prog.": "#FBE5D6",
+  "En Prog.": "#339AF0",
   "Pendiente": "#ED7D31",
   "Desierto": "#D6DCE5"
 };
 
-const ESTADO_8 = ["Publicada Convocatoria","En Recepción de Oferta","En Evaluación","Adjudicado","Desierto","Contrato Firmado","En Proceso de Mejora","Pendiente"];
+// Colores exactos tomados del gráfico original "Programado vs. Estado por mes"
+// dentro del Excel (hoja Reportes, chart1.xml) — mismo orden y mismos colores.
+const PROGRAMADOS_COLOR = "#FBE5D6";
+
+const ESTADO_8 = ["Publicada Convocatoria","En Recepción de Oferta","En Evaluación","Adjudicado","Desierto","Contrato Firmado","En Proceso de Mejora"];
 const ESTADO_COLOR = {
   "Publicada Convocatoria":"#5CC9C9",
   "En Recepción de Oferta":"#14BDBE",
@@ -403,13 +405,19 @@ function renderKPIs(data){
   const montoTotal = data.reduce((s,d)=>s+d.montoEstimado,0);
   const montoAvanzando = data.filter(d=>d.estadoR==='Listos'||d.estadoR==='Desierto')
                               .reduce((s,d)=>s+d.montoEstimado,0);
+  const montoPendiente = data.filter(d=>d.estadoR==='Pendiente')
+                              .reduce((s,d)=>s+d.montoEstimado,0);
   const montoPorAvanzar = montoTotal - montoAvanzando;
+  const pctMontoAvanzando = safeDiv(montoAvanzando, montoTotal);
+  const pctMontoPendiente = safeDiv(montoPendiente, montoTotal);
 
   document.getElementById('kpiEjecucion').textContent = total ? fmtPct(nivelEjecucion) : "N/A";
-  document.getElementById('kpiEjecucionSub').textContent = `${listos+desiertos} de ${total} procesos`;
+  document.getElementById('kpiEjecucionSub').innerHTML =
+    `${listos+desiertos} de ${total} procesos<br><strong style="opacity:1;font-size:12.5px;">${fmtMoneyShort(montoAvanzando)} = ${fmtPct(pctMontoAvanzando)} del monto total</strong>`;
 
   document.getElementById('kpiAtraso').textContent = total ? fmtPct(nivelAtraso) : "N/A";
-  document.getElementById('kpiAtrasoSub').textContent = `${pendientes} de ${total} procesos`;
+  document.getElementById('kpiAtrasoSub').innerHTML =
+    `${pendientes} de ${total} procesos<br><strong style="opacity:1;font-size:12.5px;">${fmtMoneyShort(montoPendiente)} = ${fmtPct(pctMontoPendiente)} del monto total</strong>`;
 
   document.getElementById('kpiCumplimiento').textContent = total ? fmtPct(cumplimientoSinDesiertos) : "N/A";
   document.getElementById('kpiCumplimientoSub').textContent = `${listos} de ${total} procesos`;
@@ -422,14 +430,6 @@ function renderKPIs(data){
 
   document.getElementById('kpiMonto').textContent = fmtMoneyShort(montoRiesgo);
   document.getElementById('kpiMontoSub').textContent = `${desiertos} desiertos + ${pendientes} pendientes`;
-}
-
-function isMonthPast(mes){
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const mIdx = MES_ORDER.indexOf(mes);
-  const monthEnd = new Date(currentYear, mIdx+1, 0);
-  return monthEnd < today;
 }
 
 function renderComplianceTable(data){
@@ -445,14 +445,12 @@ function renderComplianceTable(data){
     const desiertos = rows.filter(d=>d.estadoR==='Desierto').length;
     const pendientes = rows.filter(d=>d.estadoR==='Pendiente').length;
     const pctEjec = safeDiv(listos+desiertos, total);
-    const critico = isMonthPast(mes) && (pendientes>0 || mejora>0);
 
     const pillColor = pctEjec >= 0.7 ? '#2F9E44' : (pctEjec >= 0.4 ? '#E8590C' : '#E03131');
 
     const tr = document.createElement('tr');
-    if(critico) tr.className = 'critical';
     tr.innerHTML = `
-      <td>${MES_LABEL[mes]}${critico ? ' ⚠' : ''}</td>
+      <td>${MES_LABEL[mes]}</td>
       <td>${total}</td>
       <td>${listos}</td>
       <td>${mejora}</td>
@@ -479,9 +477,19 @@ function renderDonut(data){
     options:{
       maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:9} } },
-        datalabels:{ color:'#fff', font:{weight:'bold', size:10}, formatter:(v)=> v>0 ? v : '' },
-        tooltip:{ callbacks:{ label:(ctx)=> `${ctx.label}: ${ctx.raw} proceso(s)` } }
+        legend:{ position:'right', align:'center', labels:{ boxWidth:14, font:{size:12}, padding:14 } },
+        datalabels:{
+          color:'#fff', font:{weight:'bold', size:10},
+          formatter:(v, ctx)=>{
+            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+            return v>0 && total>0 ? ((v/total)*100).toFixed(0)+'%' : '';
+          }
+        },
+        tooltip:{ callbacks:{ label:(ctx)=>{
+          const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+          const pct = total>0 ? ((ctx.raw/total)*100).toFixed(1) : '0.0';
+          return `${ctx.label}: ${ctx.raw} proceso(s) (${pct}%)`;
+        } } }
       }
     },
     plugins:[ChartDataLabels]
@@ -490,22 +498,31 @@ function renderDonut(data){
 
 function renderBarMensual(data){
   const mesesPresentes = MES_ORDER.filter(m => data.some(d=>d.mes===m));
-  const buckets = ['Listos','En Proceso de Mejora','En Prog.','Pendiente','Desierto'];
-  const datasets = buckets.map(b=>({
-    label:b, backgroundColor: ESTADO_R_COLOR[b],
-    data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes && d.estadoR===b).length), stack:'s1'
-  }));
+  // Mismas 5 series, mismo orden y mismos colores que el gráfico original de Excel:
+  // Programados, Listos, En Proceso de Mejora, Desiertos, Pendientes (agrupadas, no apiladas).
+  const datasets = [
+    { label:'Programados', backgroundColor: PROGRAMADOS_COLOR,
+      data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes).length) },
+    { label:'Listos', backgroundColor: ESTADO_R_COLOR['Listos'],
+      data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes && d.estadoR==='Listos').length) },
+    { label:'En Proceso de Mejora', backgroundColor: ESTADO_R_COLOR['En Proceso de Mejora'],
+      data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes && d.estadoR==='En Proceso de Mejora').length) },
+    { label:'Desiertos', backgroundColor: ESTADO_R_COLOR['Desierto'],
+      data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes && d.estadoR==='Desierto').length) },
+    { label:'Pendientes', backgroundColor: ESTADO_R_COLOR['Pendiente'],
+      data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes && d.estadoR==='Pendiente').length) }
+  ];
   const ctx = document.getElementById('barMensual').getContext('2d');
   if(charts.barMensual) charts.barMensual.destroy();
   charts.barMensual = new Chart(ctx, {
     type:'bar',
-    data:{ labels: mesesPresentes.map(m=>MES_LABEL[m].slice(0,3)), datasets },
+    data:{ labels: mesesPresentes.map(m=>MES_LABEL[m]), datasets },
     options:{
       maintainAspectRatio:false,
-      scales:{ x:{ stacked:true, grid:{display:false} }, y:{ stacked:true, beginAtZero:true, ticks:{precision:0} } },
+      scales:{ x:{ grid:{display:false} }, y:{ beginAtZero:true, ticks:{precision:0} } },
       plugins:{
         legend:{ position:'bottom', labels:{boxWidth:10, font:{size:9}} },
-        datalabels:{ color:'#1C2733', font:{weight:'bold', size:9}, formatter:(v)=> v>0 ? v : '' }
+        datalabels:{ color:'#1C2733', font:{weight:'bold', size:11}, anchor:'end', align:'top', formatter:(v)=> v>0 ? v : '' }
       }
     },
     plugins:[ChartDataLabels]
@@ -582,13 +599,13 @@ function renderAlerts(data){
 
   elD.innerHTML = desiertos.length ? desiertos.map(d=>`
     <div class="alert-item">
-      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · Línea ${d.linea}</span></div>
+      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · Línea ${d.linea} · ${d.modalidad || 'Sin modalidad'}</span></div>
       <div class="a-amount">${fmtMoneyShort(d.montoEstimado)}</div>
     </div>`).join('') : '<div class="empty-alert">No hay procesos desiertos en el periodo/filtro seleccionado.</div>';
 
   elP.innerHTML = pendientesProximos.length ? pendientesProximos.map(d=>`
     <div class="alert-item pending">
-      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · Publica: ${fmtDate(d.fPublica)}</span></div>
+      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · ${d.modalidad || 'Sin modalidad'} · Publica: ${fmtDate(d.fPublica)}</span></div>
       <div class="a-amount">${fmtMoneyShort(d.montoEstimado)}</div>
     </div>`).join('') : '<div class="empty-alert">No hay procesos pendientes por iniciar en los próximos 15 días.</div>';
 
@@ -603,11 +620,11 @@ function renderDetailTable(data, searchTerm){
 
   const tbody = document.getElementById('detailBody');
   tbody.innerHTML = filtered.map(d=>{
-    const color = ESTADO_R_COLOR[d.estadoR] || '#868E96';
+    const color = ESTADO_COLOR[d.estado] || ESTADO_R_COLOR[d.estadoR] || '#868E96';
     return `<tr>
       <td>${d.areaSolicitante}</td>
       <td class="col-linea">${d.linea}</td>
-      <td>${d.cbs}</td>
+      <td>${d.modalidad}</td>
       <td>${d.descripcion}</td>
       <td class="col-monto">${fmtMoney(d.montoEstimado)}</td>
       <td><span class="status-badge" style="background:${color}">${d.estado || d.estadoR}</span></td>
