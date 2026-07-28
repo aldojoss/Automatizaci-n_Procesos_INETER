@@ -147,7 +147,6 @@
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <div class="badge-inst" id="lastLoad">Cargando datos...</div>
-      <button id="btnDownloadPdf" class="header-btn">Descargar PDF</button>
       <a href="{{ url_for('logout') }}" class="header-btn header-btn-ghost">Salir</a>
     </div>
   </div>
@@ -697,10 +696,6 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   } finally {
     btn.disabled = false;
   }
-});
-
-document.getElementById('btnDownloadPdf').addEventListener('click', () => {
-  window.print();
 });
 
 loadData();
