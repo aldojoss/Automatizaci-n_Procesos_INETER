@@ -8,8 +8,8 @@
 <script src="{{ url_for('static', filename='js/chartjs-plugin-datalabels.min.js') }}"></script>
 <style>
   :root{
-    --navy:#0B2E59;
-    --navy-dark:#081F3D;
+    --navy:#1B2A4A;
+    --navy-dark:#101a30;
     --bg:#F4F6F9;
     --card-bg:#FFFFFF;
     --border:#E3E8EF;
@@ -217,6 +217,17 @@
     </div>
   </div>
 
+  <div class="charts-row2">
+    <div class="chart-box">
+      <h3>Distribución por Estado</h3>
+      <div class="chart-wrap"><canvas id="donutEstado"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Programado vs. Estado por mes</h3>
+      <div class="chart-wrap"><canvas id="barMensual"></canvas></div>
+    </div>
+  </div>
+
   <div class="panel">
     <h2>Alertas <span class="count-chip" id="alertCount">0</span></h2>
     <div class="alerts-grid">
@@ -231,25 +242,15 @@
     </div>
   </div>
 
-  <div class="charts-row">
-    <div class="chart-box">
-      <h3>Cumplimiento mensual del PAC</h3>
-      <div class="table-scroll" style="max-height:280px;">
-        <table class="compliance" id="complianceTable">
-          <thead>
-            <tr><th>Mes</th><th>Prog.</th><th>Listos</th><th>Mejora</th><th>En Prog.</th><th>Desiertos</th><th>Pendientes</th><th>% Ejec.</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="chart-box">
-      <h3>Distribución por Estado</h3>
-      <div class="chart-wrap"><canvas id="donutEstado"></canvas></div>
-    </div>
-    <div class="chart-box">
-      <h3>Programado vs. Estado por mes</h3>
-      <div class="chart-wrap"><canvas id="barMensual"></canvas></div>
+  <div class="chart-box" style="margin-bottom:20px;">
+    <h3>Cumplimiento mensual del PAC</h3>
+    <div class="table-scroll" style="max-height:280px;">
+      <table class="compliance" id="complianceTable">
+        <thead>
+          <tr><th>Mes</th><th>Programados</th><th>Listos</th><th>En Proceso de Mejora</th><th>En Prog.</th><th>Desiertos</th><th>Pendientes</th><th>% Ejecución</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
@@ -306,23 +307,23 @@ const MES_ORDER = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","
 const MES_LABEL = {ene:"Enero",feb:"Febrero",mar:"Marzo",abr:"Abril",may:"Mayo",jun:"Junio",jul:"Julio",ago:"Agosto",sep:"Septiembre",oct:"Octubre",nov:"Noviembre",dic:"Diciembre"};
 
 const ESTADO_R_COLOR = {
-  "Listos": "#2F9E44",
-  "En Proceso de Mejora": "#1971C2",
-  "En Prog.": "#868E96",
-  "Pendiente": "#E8590C",
-  "Desierto": "#E03131"
+  "Listos": "#A9D18E",
+  "En Proceso de Mejora": "#FFC000",
+  "En Prog.": "#FBE5D6",
+  "Pendiente": "#ED7D31",
+  "Desierto": "#D6DCE5"
 };
 
 const ESTADO_8 = ["Publicada Convocatoria","En Recepción de Oferta","En Evaluación","Adjudicado","Desierto","Contrato Firmado","En Proceso de Mejora","Pendiente"];
 const ESTADO_COLOR = {
-  "Publicada Convocatoria":"#4DABF7",
-  "En Recepción de Oferta":"#748FFC",
-  "En Evaluación":"#9775FA",
-  "Adjudicado":"#20C997",
+  "Publicada Convocatoria":"#5CC9C9",
+  "En Recepción de Oferta":"#14BDBE",
+  "En Evaluación":"#0D7377",
+  "Adjudicado":"#14A85B",
   "Desierto":"#E03131",
-  "Contrato Firmado":"#2F9E44",
-  "En Proceso de Mejora":"#1971C2",
-  "Pendiente":"#E8590C"
+  "Contrato Firmado":"#F4A623",
+  "En Proceso de Mejora":"#FFC000",
+  "Pendiente":"#ED7D31"
 };
 
 const fmtMoney = (n) => "C$ " + Number(n||0).toLocaleString('es-NI', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -505,7 +506,7 @@ function renderBarMensual(data){
       scales:{ x:{ stacked:true, grid:{display:false} }, y:{ stacked:true, beginAtZero:true, ticks:{precision:0} } },
       plugins:{
         legend:{ position:'bottom', labels:{boxWidth:10, font:{size:9}} },
-        datalabels:{ color:'#fff', font:{weight:'bold', size:9}, formatter:(v)=> v>0 ? v : '' }
+        datalabels:{ color:'#1C2733', font:{weight:'bold', size:9}, formatter:(v)=> v>0 ? v : '' }
       }
     },
     plugins:[ChartDataLabels]
@@ -519,13 +520,13 @@ function renderBarModalidad(data){
   if(charts.barModalidad) charts.barModalidad.destroy();
   charts.barModalidad = new Chart(ctx, {
     type:'bar',
-    data:{ labels: modalidades, datasets:[{ label:'Procesos', data: counts, backgroundColor: '#0B2E59', borderRadius:4, maxBarThickness:60 }] },
+    data:{ labels: modalidades, datasets:[{ label:'Procesos', data: counts, backgroundColor: '#1B2A4A', borderRadius:4, maxBarThickness:60 }] },
     options:{
       indexAxis:'y', maintainAspectRatio:false,
       scales:{ x:{ beginAtZero:true, ticks:{precision:0} } },
       plugins:{
         legend:{display:false},
-        datalabels:{ color:'#0B2E59', anchor:'end', align:'right', font:{weight:'bold', size:11} }
+        datalabels:{ color:'#1B2A4A', anchor:'end', align:'right', font:{weight:'bold', size:11} }
       }
     },
     plugins:[ChartDataLabels]
@@ -546,7 +547,7 @@ function renderBarProcedimientos(data){
       labels:['Programados','Avanzando','Desiertos','Pendientes'],
       datasets:[{
         data:[total, avanzando, desiertos, pendientes],
-        backgroundColor:['#0B2E59','#2F9E44','#E03131','#E8590C'],
+        backgroundColor:['#DAE3F3','#C5E0B4','#FF0000','#ED7D31'],
         borderRadius:4, maxBarThickness:70
       }]
     },
