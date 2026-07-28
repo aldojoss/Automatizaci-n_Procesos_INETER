@@ -9,3 +9,8 @@ services:
       name: pac-data
       mountPath: /opt/render/project/src/data
       sizeGB: 1
+    envVars:
+      - key: DASHBOARD_PASSWORD
+        sync: false
+      - key: FLASK_SECRET_KEY
+        generateValue: true

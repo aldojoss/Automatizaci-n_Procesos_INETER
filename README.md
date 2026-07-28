@@ -13,10 +13,29 @@ y el dashboard se actualiza solo — sin pasar por Google Sheets.
    gráficos (donut, barras apiladas, Procedimientos de Contratación, Modalidad) y alertas.
 4. Cada vez que se sube un nuevo archivo, todo el dashboard se recalcula automáticamente.
 
+## Acceso con contraseña
+
+El dashboard está protegido con una contraseña única (no hay usuarios, es solo
+una llave compartida). Se configura con dos variables de entorno:
+
+- `DASHBOARD_PASSWORD`: la contraseña para entrar.
+- `FLASK_SECRET_KEY`: clave para firmar la sesión (pon cualquier texto largo y aleatorio).
+
+Si no defines `DASHBOARD_PASSWORD`, el dashboard queda abierto (útil solo para
+desarrollo local). **En producción (Render) siempre debes configurarla.**
+
+## Exportar a PDF
+
+El botón **"Descargar PDF"** del header abre el diálogo de impresión del
+navegador con el dashboard ya formateado para papel (sin el panel de subida
+ni los filtros). Ahí eliges **"Guardar como PDF"** en vez de imprimir.
+
 ## Correr localmente
 
 ```bash
 pip install -r requirements.txt
+export DASHBOARD_PASSWORD=tu-contraseña
+export FLASK_SECRET_KEY=una-clave-larga-y-aleatoria
 python app.py
 # abre http://localhost:5000
 ```

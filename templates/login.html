@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso · Seguimiento al PAC 2026</title>
+<style>
+  :root{ --navy:#0B2E59; --navy-dark:#081F3D; --bg:#F4F6F9; --border:#E3E8EF; --text:#1C2733; --text-muted:#66748C; --red:#E03131; }
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:36px 32px;
+    width:100%;max-width:360px;box-shadow:0 4px 18px rgba(11,46,89,0.08);}
+  .card .stripe{height:6px;border-radius:6px;background:linear-gradient(90deg,#1971C2,#0D7377);margin:-36px -32px 24px;}
+  h1{font-size:18px;margin:0 0 4px;color:var(--navy);}
+  p.sub{font-size:13px;color:var(--text-muted);margin:0 0 22px;}
+  label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+  input[type=password]{width:100%;padding:10px 12px;margin-top:6px;border:1px solid var(--border);
+    border-radius:6px;font-size:14px;}
+  button{width:100%;margin-top:18px;background:var(--navy);color:#fff;border:none;padding:11px;
+    border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;}
+  button:hover{background:var(--navy-dark);}
+  .error{color:var(--red);font-size:13px;margin-top:12px;text-align:center;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="stripe"></div>
+    <h1>Seguimiento al PAC 2026</h1>
+    <p class="sub">Acceso restringido · INETER</p>
+    <form method="POST">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" name="password" autofocus required>
+      <button type="submit">Entrar</button>
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    </form>
+  </div>
+</body>
+</html>

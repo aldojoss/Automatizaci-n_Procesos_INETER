@@ -1,8 +1,9 @@
 import json
 import os
 from datetime import datetime
+from functools import wraps
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 from parser import parse_workbook
 
@@ -15,6 +16,44 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 MAX_UPLOAD_MB = 15
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
+
+# --- Autenticación simple (una sola contraseña compartida) ---
+# La contraseña y la clave de sesión se leen de variables de entorno,
+# NUNCA se escriben aquí en el código ni se suben a git.
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-cambia-esto-en-produccion")
+DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD")
+
+
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapped(*args, **kwargs):
+        if not session.get("authenticated"):
+            return redirect(url_for("login"))
+        return view_func(*args, **kwargs)
+    return wrapped
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not DASHBOARD_PASSWORD:
+        # Si no se configuró contraseña (ej. desarrollo local sin variable de entorno),
+        # no bloqueamos el acceso para no romper el flujo local.
+        session["authenticated"] = True
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        if request.form.get("password") == DASHBOARD_PASSWORD:
+            session["authenticated"] = True
+            return redirect(url_for("index"))
+        return render_template("login.html", error="Contraseña incorrecta."), 401
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
 def load_current_data():
@@ -36,16 +75,19 @@ def save_current_data(records, file_name):
 
 
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 
 @app.route("/api/data")
+@login_required
 def api_data():
     return jsonify(load_current_data())
 
 
 @app.route("/upload", methods=["POST"])
+@login_required
 def upload():
     if "file" not in request.files:
         return jsonify({"ok": False, "error": "No se recibió ningún archivo."}), 400

@@ -29,6 +29,18 @@
   header.top h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.3px;}
   header.top .sub{font-size:13px;color:#B9C7DE;margin-top:4px;}
   header.top .badge-inst{font-size:12px;background:rgba(255,255,255,.12);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.25);}
+  header.top .header-btn{font-size:13px;font-weight:600;padding:8px 16px;border-radius:6px;border:1px solid rgba(255,255,255,.3);
+    background:#fff;color:var(--navy);cursor:pointer;text-decoration:none;display:inline-block;}
+  header.top .header-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);}
+  header.top .header-btn-ghost:hover{background:rgba(255,255,255,.12);}
+
+  @media print{
+    body{background:#fff;}
+    header.top .header-btn, header.top .header-btn-ghost{display:none;}
+    .upload-panel, .filters{display:none !important;}
+    main{padding:0;max-width:100%;}
+    .kpi-card, .panel, .compliance, table{break-inside:avoid;}
+  }
 
   main{padding:24px 28px 60px;max-width:1500px;margin:0 auto;}
 
@@ -133,7 +145,11 @@
       <h1>Seguimiento al PAC 2026</h1>
       <div class="sub">Instituto Nicaragüense de Estudios Territoriales · INETER — Plan Anual de Contrataciones</div>
     </div>
-    <div class="badge-inst" id="lastLoad">Cargando datos...</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="badge-inst" id="lastLoad">Cargando datos...</div>
+      <button id="btnDownloadPdf" class="header-btn">Descargar PDF</button>
+      <a href="{{ url_for('logout') }}" class="header-btn header-btn-ghost">Salir</a>
+    </div>
   </div>
 </header>
 
@@ -680,6 +696,10 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   } finally {
     btn.disabled = false;
   }
+});
+
+document.getElementById('btnDownloadPdf').addEventListener('click', () => {
+  window.print();
 });
 
 loadData();
