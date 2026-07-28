@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento al PAC 2026 · INETER</title>
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chartjs-plugin-datalabels.min.js') }}"></script>
+<style>
+  :root{
+    --navy:#0B2E59;
+    --navy-dark:#081F3D;
+    --bg:#F4F6F9;
+    --card-bg:#FFFFFF;
+    --border:#E3E8EF;
+    --text:#1C2733;
+    --text-muted:#66748C;
+    --green-bg:#0D7377;
+    --red:#E03131;
+    --gray-bg:#BFBFBF;
+    --gray-text:#7F7F7F;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+
+  header.top{background:var(--navy);color:#fff;display:flex;align-items:center;box-shadow:0 2px 8px rgba(11,46,89,0.25);}
+  header.top .stripe{width:10px;align-self:stretch;background:linear-gradient(180deg,#1971C2,#0D7377);}
+  header.top .content{padding:20px 28px;display:flex;justify-content:space-between;align-items:center;width:100%;flex-wrap:wrap;gap:12px;}
+  header.top h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.3px;}
+  header.top .sub{font-size:13px;color:#B9C7DE;margin-top:4px;}
+  header.top .badge-inst{font-size:12px;background:rgba(255,255,255,.12);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.25);}
+
+  main{padding:24px 28px 60px;max-width:1500px;margin:0 auto;}
+
+  .upload-panel{background:var(--card-bg);border:1px dashed #9FB3CE;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .upload-panel .u-text{flex:1;min-width:220px;}
+  .upload-panel .u-text strong{display:block;font-size:14px;color:var(--navy);}
+  .upload-panel .u-text span{font-size:12.5px;color:var(--text-muted);}
+  .upload-panel input[type=file]{font-size:13px;}
+  .upload-panel button{background:var(--navy);color:#fff;border:none;padding:9px 18px;border-radius:6px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .upload-panel button:disabled{opacity:.6;cursor:not-allowed;}
+  .upload-status{font-size:12.5px;font-weight:600;min-width:160px;}
+  .upload-status.ok{color:#2F9E44;}
+  .upload-status.err{color:var(--red);}
+
+  .filters{display:flex;gap:16px;align-items:flex-end;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;flex-wrap:wrap;}
+  .filters .field{display:flex;flex-direction:column;gap:6px;min-width:200px;}
+  .filters label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+  .filters select{padding:8px 10px;border-radius:6px;border:1px solid var(--border);font-size:14px;background:#fff;color:var(--text);}
+  .filters .reset-btn{padding:8px 16px;border-radius:6px;border:1px solid var(--navy);background:#fff;color:var(--navy);font-size:13px;font-weight:600;cursor:pointer;height:36px;}
+  .filters .reset-btn:hover{background:var(--navy);color:#fff;}
+  .filters .updated{margin-left:auto;font-size:12px;color:var(--text-muted);align-self:center;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px;}
+  .kpi-card{border-radius:12px;padding:16px 16px;box-shadow:0 2px 6px rgba(0,0,0,.06);min-height:104px;display:flex;flex-direction:column;justify-content:space-between;}
+  .kpi-card .kpi-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;opacity:.9;}
+  .kpi-card .kpi-value{font-size:26px;font-weight:800;margin-top:6px;}
+  .kpi-card .kpi-sub{font-size:11px;margin-top:4px;opacity:.85;}
+  .kpi-ejecucion{background:var(--green-bg);color:#fff;}
+  .kpi-atraso{background:var(--red);color:#fff;}
+  .kpi-cumplimiento{background:var(--gray-bg);color:var(--gray-text);}
+  .kpi-cumplimiento .kpi-label{color:var(--gray-text);}
+  .kpi-total{background:#fff;border:1px solid var(--border);}
+  .kpi-total .kpi-label{color:var(--text-muted);}
+  .kpi-total .kpi-value{color:var(--navy);}
+  .kpi-procesos{background:#fff;border:1px solid var(--border);}
+  .kpi-procesos .kpi-label{color:var(--text-muted);}
+  .kpi-procesos .kpi-value{color:var(--navy);}
+  .kpi-riesgo{background:#fff;border:1px solid var(--border);}
+  .kpi-riesgo .kpi-label{color:var(--text-muted);}
+  .kpi-riesgo .kpi-value{color:var(--red);font-weight:800;}
+
+  .panel{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+  .panel h2{font-size:15px;margin:0 0 14px 0;color:var(--navy);font-weight:700;display:flex;align-items:center;gap:8px;}
+  .panel h2 .count-chip{background:var(--navy);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;}
+
+  .alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .alert-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;background:#FFF5F5;border-left:4px solid var(--red);margin-bottom:8px;font-size:13px;}
+  .alert-item.pending{background:#FFF9DB;border-left-color:#F59F00;}
+  .alert-item .a-desc{flex:1;padding-right:10px;}
+  .alert-item .a-desc strong{display:block;color:var(--text);font-size:13px;}
+  .alert-item .a-desc span{color:var(--text-muted);font-size:11.5px;}
+  .alert-item .a-amount{font-weight:700;font-size:12.5px;color:var(--text);white-space:nowrap;}
+  .empty-alert{color:var(--text-muted);font-size:13px;font-style:italic;padding:8px 0;}
+
+  .charts-row{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:16px;margin-bottom:16px;}
+  .charts-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  .chart-box{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+  .chart-box h3{font-size:13.5px;margin:0 0 12px 0;color:var(--navy);font-weight:700;}
+  .chart-box .chart-wrap{position:relative;height:260px;}
+
+  table.compliance{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.compliance th{text-align:left;background:var(--navy);color:#fff;padding:7px 8px;font-weight:600;font-size:11px;text-transform:uppercase;}
+  table.compliance td{padding:6px 8px;border-bottom:1px solid var(--border);}
+  table.compliance tr.critical td{background:#FFF0F0;}
+  table.compliance tr.critical td:first-child{border-left:3px solid var(--red);font-weight:700;}
+  .pct-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11.5px;color:#fff;}
+
+  .detail-panel .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .detail-panel input[type="text"]{flex:1;min-width:240px;padding:9px 12px;border-radius:6px;border:1px solid var(--border);font-size:13.5px;}
+  .detail-panel .result-count{font-size:12.5px;color:var(--text-muted);white-space:nowrap;}
+  .table-scroll{max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;}
+  table.detail{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.detail thead th{position:sticky;top:0;background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;z-index:2;}
+  table.detail tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.detail tbody tr:hover{background:#F8FAFD;}
+  .status-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
+  .col-monto{text-align:right;white-space:nowrap;}
+  .col-linea{text-align:center;}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+  .empty-state strong{display:block;color:var(--navy);font-size:16px;margin-bottom:6px;}
+
+  footer.foot{text-align:center;padding:18px;color:var(--text-muted);font-size:11.5px;}
+
+  @media (max-width: 1180px){
+    .kpi-grid{grid-template-columns:repeat(3,1fr);}
+    .charts-row{grid-template-columns:1fr;}
+    .charts-row2{grid-template-columns:1fr;}
+    .alerts-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width: 640px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="stripe"></div>
+  <div class="content">
+    <div>
+      <h1>Seguimiento al PAC 2026</h1>
+      <div class="sub">Instituto Nicaragüense de Estudios Territoriales · INETER — Plan Anual de Contrataciones</div>
+    </div>
+    <div class="badge-inst" id="lastLoad">Cargando datos...</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="upload-panel">
+    <div class="u-text">
+      <strong>Actualizar datos</strong>
+      <span>Sube el archivo .xlsm/.xlsx (hoja PAC_III_MOD) para actualizar todo el dashboard.</span>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsm,.xlsx">
+    <button id="btnUpload">Subir y actualizar</button>
+    <div class="upload-status" id="uploadStatus"></div>
+  </div>
+
+  <div id="dashboardContent" style="display:none;">
+
+  <div class="filters">
+    <div class="field">
+      <label for="fDireccion">Dirección / Área solicitante</label>
+      <select id="fDireccion"></select>
+    </div>
+    <div class="field">
+      <label for="fMesDesde">Periodo — desde</label>
+      <select id="fMesDesde"></select>
+    </div>
+    <div class="field">
+      <label for="fMesHasta">Periodo — hasta</label>
+      <select id="fMesHasta"></select>
+    </div>
+    <button class="reset-btn" id="btnReset">Limpiar filtros</button>
+    <div class="updated" id="filterSummary"></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-ejecucion">
+      <div class="kpi-label">Nivel de Ejecución</div>
+      <div class="kpi-value" id="kpiEjecucion">--%</div>
+      <div class="kpi-sub" id="kpiEjecucionSub">Listos + Desiertos / Total</div>
+    </div>
+    <div class="kpi-card kpi-atraso">
+      <div class="kpi-label">Nivel de Atraso</div>
+      <div class="kpi-value" id="kpiAtraso">--%</div>
+      <div class="kpi-sub" id="kpiAtrasoSub">Pendientes / Total</div>
+    </div>
+    <div class="kpi-card kpi-cumplimiento">
+      <div class="kpi-label">Cumplimiento sin desiertos</div>
+      <div class="kpi-value" id="kpiCumplimiento">--%</div>
+      <div class="kpi-sub" id="kpiCumplimientoSub">Listos / Total</div>
+    </div>
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Monto total</div>
+      <div class="kpi-value" id="kpiMontoTotal">C$ --</div>
+      <div class="kpi-sub" id="kpiMontoTotalSub">Por avanzar: C$ --</div>
+    </div>
+    <div class="kpi-card kpi-procesos">
+      <div class="kpi-label">Total de procesos</div>
+      <div class="kpi-value" id="kpiTotalProcesos">--</div>
+      <div class="kpi-sub" id="kpiTotalProcesosSub">En el periodo/filtro actual</div>
+    </div>
+    <div class="kpi-card kpi-riesgo">
+      <div class="kpi-label">Monto en riesgo</div>
+      <div class="kpi-value" id="kpiMonto">C$ --</div>
+      <div class="kpi-sub" id="kpiMontoSub">Desiertos + Pendientes</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Alertas <span class="count-chip" id="alertCount">0</span></h2>
+    <div class="alerts-grid">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;">PROCESOS DESIERTOS (candidatos a relicitar)</div>
+        <div id="alertsDesiertos"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#E8590C;margin-bottom:8px;">PENDIENTES PRÓXIMOS A INICIAR (15 días)</div>
+        <div id="alertsPendientes"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-box">
+      <h3>Cumplimiento mensual del PAC</h3>
+      <div class="table-scroll" style="max-height:280px;">
+        <table class="compliance" id="complianceTable">
+          <thead>
+            <tr><th>Mes</th><th>Prog.</th><th>Listos</th><th>Mejora</th><th>En Prog.</th><th>Desiertos</th><th>Pendientes</th><th>% Ejec.</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chart-box">
+      <h3>Distribución por Estado</h3>
+      <div class="chart-wrap"><canvas id="donutEstado"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Programado vs. Estado por mes</h3>
+      <div class="chart-wrap"><canvas id="barMensual"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row2">
+    <div class="chart-box">
+      <h3>Procedimientos de Contratación (Cantidad)</h3>
+      <div class="chart-wrap" style="height:220px;"><canvas id="barProcedimientos"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Procesos por Modalidad de Contratación</h3>
+      <div class="chart-wrap" style="height:220px;"><canvas id="barModalidad"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel detail-panel">
+    <h2>Detalle de procesos <span class="count-chip" id="detailCount">0</span></h2>
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Buscar por descripción o # de línea...">
+      <div class="result-count" id="resultCount"></div>
+    </div>
+    <div class="table-scroll">
+      <table class="detail">
+        <thead>
+          <tr>
+            <th>Área</th>
+            <th class="col-linea">#Línea</th>
+            <th>CBS</th>
+            <th>Descripción</th>
+            <th style="text-align:right;">Monto Estimado</th>
+            <th>Estado</th>
+            <th>F. Pública</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="empty-state" id="emptyState">
+    <strong>Todavía no hay datos cargados</strong>
+    Sube el archivo .xlsm de Seguimiento al PAC 2026 arriba para generar el dashboard.
+  </div>
+
+</main>
+
+<footer class="foot">
+  Dashboard generado a partir de "SEGUIMIENTO AL PAC 2026" (PAC_III_MOD) · INETER · Uso interno
+</footer>
+
+<script>
+const MES_ORDER = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const MES_LABEL = {ene:"Enero",feb:"Febrero",mar:"Marzo",abr:"Abril",may:"Mayo",jun:"Junio",jul:"Julio",ago:"Agosto",sep:"Septiembre",oct:"Octubre",nov:"Noviembre",dic:"Diciembre"};
+
+const ESTADO_R_COLOR = {
+  "Listos": "#2F9E44",
+  "En Proceso de Mejora": "#1971C2",
+  "En Prog.": "#868E96",
+  "Pendiente": "#E8590C",
+  "Desierto": "#E03131"
+};
+
+const ESTADO_8 = ["Publicada Convocatoria","En Recepción de Oferta","En Evaluación","Adjudicado","Desierto","Contrato Firmado","En Proceso de Mejora","Pendiente"];
+const ESTADO_COLOR = {
+  "Publicada Convocatoria":"#4DABF7",
+  "En Recepción de Oferta":"#748FFC",
+  "En Evaluación":"#9775FA",
+  "Adjudicado":"#20C997",
+  "Desierto":"#E03131",
+  "Contrato Firmado":"#2F9E44",
+  "En Proceso de Mejora":"#1971C2",
+  "Pendiente":"#E8590C"
+};
+
+const fmtMoney = (n) => "C$ " + Number(n||0).toLocaleString('es-NI', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtMoneyShort = (n) => "C$ " + Number(n||0).toLocaleString('es-NI', {maximumFractionDigits:0});
+const fmtPct = (n) => (isFinite(n) ? (n*100).toFixed(1) : "0.0") + "%";
+const fmtDate = (iso) => { if(!iso) return "—"; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+
+let RAW_DATA = [];
+let charts = { donut:null, barMensual:null, barModalidad:null, barProcedimientos:null };
+
+function uniqueSorted(arr){ return [...new Set(arr)].sort((a,b)=>a.localeCompare(b,'es')); }
+function safeDiv(a,b){ if(!b) return 0; return a/b; }
+
+async function loadData(){
+  const res = await fetch('/api/data');
+  const payload = await res.json();
+  RAW_DATA = payload.records || [];
+
+  if (RAW_DATA.length === 0){
+    document.getElementById('dashboardContent').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('lastLoad').textContent = 'Sin datos cargados';
+    return;
+  }
+  document.getElementById('dashboardContent').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  const when = payload.updatedAt ? new Date(payload.updatedAt).toLocaleString('es-NI') : '';
+  document.getElementById('lastLoad').textContent = `${RAW_DATA.length} procesos · Actualizado: ${when}`;
+
+  populateFilters();
+  refreshAll();
+}
+
+function populateFilters(){
+  const areas = uniqueSorted(RAW_DATA.map(d=>d.areaSolicitante).filter(Boolean));
+  const selDir = document.getElementById('fDireccion');
+  selDir.innerHTML = '<option value="__ALL__">Todas las direcciones</option>' +
+    areas.map(a=>`<option value="${a}">${a}</option>`).join('');
+
+  const mesesPresentes = MES_ORDER.filter(m => RAW_DATA.some(d=>d.mes===m));
+  const selDesde = document.getElementById('fMesDesde');
+  const selHasta = document.getElementById('fMesHasta');
+  const opts = mesesPresentes.map(m=>`<option value="${m}">${MES_LABEL[m]}</option>`).join('');
+  selDesde.innerHTML = opts;
+  selHasta.innerHTML = opts;
+  if(mesesPresentes.length){
+    selDesde.value = mesesPresentes[0];
+    selHasta.value = mesesPresentes[mesesPresentes.length-1];
+  }
+}
+
+function getFilteredData(){
+  const dir = document.getElementById('fDireccion').value;
+  const desde = document.getElementById('fMesDesde').value;
+  const hasta = document.getElementById('fMesHasta').value;
+  const idxDesde = MES_ORDER.indexOf(desde);
+  const idxHasta = MES_ORDER.indexOf(hasta);
+  return RAW_DATA.filter(d=>{
+    if(dir !== '__ALL__' && d.areaSolicitante !== dir) return false;
+    if(!d.mes) return false;
+    const idx = MES_ORDER.indexOf(d.mes);
+    if(idxDesde <= idxHasta){ if(idx < idxDesde || idx > idxHasta) return false; }
+    return true;
+  });
+}
+
+function renderKPIs(data){
+  const total = data.length;
+  const listos = data.filter(d=>d.estadoR==='Listos').length;
+  const desiertos = data.filter(d=>d.estadoR==='Desierto').length;
+  const pendientes = data.filter(d=>d.estadoR==='Pendiente').length;
+
+  const nivelEjecucion = safeDiv(listos+desiertos, total);
+  const nivelAtraso = safeDiv(pendientes, total);
+  const cumplimientoSinDesiertos = safeDiv(listos, total);
+  const montoRiesgo = data.filter(d=>d.estadoR==='Desierto'||d.estadoR==='Pendiente')
+                           .reduce((s,d)=>s+d.montoEstimado,0);
+  const montoTotal = data.reduce((s,d)=>s+d.montoEstimado,0);
+  const montoAvanzando = data.filter(d=>d.estadoR==='Listos'||d.estadoR==='Desierto')
+                              .reduce((s,d)=>s+d.montoEstimado,0);
+  const montoPorAvanzar = montoTotal - montoAvanzando;
+
+  document.getElementById('kpiEjecucion').textContent = total ? fmtPct(nivelEjecucion) : "N/A";
+  document.getElementById('kpiEjecucionSub').textContent = `${listos+desiertos} de ${total} procesos`;
+
+  document.getElementById('kpiAtraso').textContent = total ? fmtPct(nivelAtraso) : "N/A";
+  document.getElementById('kpiAtrasoSub').textContent = `${pendientes} de ${total} procesos`;
+
+  document.getElementById('kpiCumplimiento').textContent = total ? fmtPct(cumplimientoSinDesiertos) : "N/A";
+  document.getElementById('kpiCumplimientoSub').textContent = `${listos} de ${total} procesos`;
+
+  document.getElementById('kpiMontoTotal').textContent = fmtMoneyShort(montoTotal);
+  document.getElementById('kpiMontoTotalSub').textContent = `Por avanzar: ${fmtMoneyShort(montoPorAvanzar)}`;
+
+  document.getElementById('kpiTotalProcesos').textContent = total;
+  document.getElementById('kpiTotalProcesosSub').textContent = 'En el periodo/filtro actual';
+
+  document.getElementById('kpiMonto').textContent = fmtMoneyShort(montoRiesgo);
+  document.getElementById('kpiMontoSub').textContent = `${desiertos} desiertos + ${pendientes} pendientes`;
+}
+
+function isMonthPast(mes){
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const mIdx = MES_ORDER.indexOf(mes);
+  const monthEnd = new Date(currentYear, mIdx+1, 0);
+  return monthEnd < today;
+}
+
+function renderComplianceTable(data){
+  const tbody = document.querySelector('#complianceTable tbody');
+  tbody.innerHTML = '';
+  const mesesPresentes = MES_ORDER.filter(m => data.some(d=>d.mes===m));
+  mesesPresentes.forEach(mes=>{
+    const rows = data.filter(d=>d.mes===mes);
+    const total = rows.length;
+    const listos = rows.filter(d=>d.estadoR==='Listos').length;
+    const mejora = rows.filter(d=>d.estadoR==='En Proceso de Mejora').length;
+    const enProg = rows.filter(d=>d.estadoR==='En Prog.').length;
+    const desiertos = rows.filter(d=>d.estadoR==='Desierto').length;
+    const pendientes = rows.filter(d=>d.estadoR==='Pendiente').length;
+    const pctEjec = safeDiv(listos+desiertos, total);
+    const critico = isMonthPast(mes) && (pendientes>0 || mejora>0);
+
+    const pillColor = pctEjec >= 0.7 ? '#2F9E44' : (pctEjec >= 0.4 ? '#E8590C' : '#E03131');
+
+    const tr = document.createElement('tr');
+    if(critico) tr.className = 'critical';
+    tr.innerHTML = `
+      <td>${MES_LABEL[mes]}${critico ? ' ⚠' : ''}</td>
+      <td>${total}</td>
+      <td>${listos}</td>
+      <td>${mejora}</td>
+      <td>${enProg}</td>
+      <td>${desiertos}</td>
+      <td>${pendientes}</td>
+      <td><span class="pct-pill" style="background:${pillColor}">${fmtPct(pctEjec)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  if(mesesPresentes.length===0){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:16px;">Sin datos para el periodo seleccionado</td></tr>';
+  }
+}
+
+function renderDonut(data){
+  const withEstado = data.filter(d => d.estado && ESTADO_8.includes(d.estado));
+  const counts = ESTADO_8.map(e => withEstado.filter(d=>d.estado===e).length);
+  const ctx = document.getElementById('donutEstado').getContext('2d');
+  if(charts.donut) charts.donut.destroy();
+  charts.donut = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels: ESTADO_8, datasets:[{ data: counts, backgroundColor: ESTADO_8.map(e=>ESTADO_COLOR[e]), borderWidth:2, borderColor:'#fff' }] },
+    options:{
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:9} } },
+        datalabels:{ color:'#fff', font:{weight:'bold', size:10}, formatter:(v)=> v>0 ? v : '' },
+        tooltip:{ callbacks:{ label:(ctx)=> `${ctx.label}: ${ctx.raw} proceso(s)` } }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function renderBarMensual(data){
+  const mesesPresentes = MES_ORDER.filter(m => data.some(d=>d.mes===m));
+  const buckets = ['Listos','En Proceso de Mejora','En Prog.','Pendiente','Desierto'];
+  const datasets = buckets.map(b=>({
+    label:b, backgroundColor: ESTADO_R_COLOR[b],
+    data: mesesPresentes.map(mes => data.filter(d=>d.mes===mes && d.estadoR===b).length), stack:'s1'
+  }));
+  const ctx = document.getElementById('barMensual').getContext('2d');
+  if(charts.barMensual) charts.barMensual.destroy();
+  charts.barMensual = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: mesesPresentes.map(m=>MES_LABEL[m].slice(0,3)), datasets },
+    options:{
+      maintainAspectRatio:false,
+      scales:{ x:{ stacked:true, grid:{display:false} }, y:{ stacked:true, beginAtZero:true, ticks:{precision:0} } },
+      plugins:{
+        legend:{ position:'bottom', labels:{boxWidth:10, font:{size:9}} },
+        datalabels:{ color:'#fff', font:{weight:'bold', size:9}, formatter:(v)=> v>0 ? v : '' }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function renderBarModalidad(data){
+  const modalidades = uniqueSorted(data.map(d=>d.modalidad).filter(Boolean));
+  const counts = modalidades.map(m => data.filter(d=>d.modalidad===m).length);
+  const ctx = document.getElementById('barModalidad').getContext('2d');
+  if(charts.barModalidad) charts.barModalidad.destroy();
+  charts.barModalidad = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: modalidades, datasets:[{ label:'Procesos', data: counts, backgroundColor: '#0B2E59', borderRadius:4, maxBarThickness:60 }] },
+    options:{
+      indexAxis:'y', maintainAspectRatio:false,
+      scales:{ x:{ beginAtZero:true, ticks:{precision:0} } },
+      plugins:{
+        legend:{display:false},
+        datalabels:{ color:'#0B2E59', anchor:'end', align:'right', font:{weight:'bold', size:11} }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function renderBarProcedimientos(data){
+  const total = data.length;
+  const avanzando = data.filter(d=>d.estadoR==='Listos').length;
+  const desiertos = data.filter(d=>d.estadoR==='Desierto').length;
+  const pendientes = data.filter(d=>d.estadoR==='Pendiente' || d.estadoR==='En Proceso de Mejora' || d.estadoR==='En Prog.').length;
+
+  const ctx = document.getElementById('barProcedimientos').getContext('2d');
+  if(charts.barProcedimientos) charts.barProcedimientos.destroy();
+  charts.barProcedimientos = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:['Programados','Avanzando','Desiertos','Pendientes'],
+      datasets:[{
+        data:[total, avanzando, desiertos, pendientes],
+        backgroundColor:['#0B2E59','#2F9E44','#E03131','#E8590C'],
+        borderRadius:4, maxBarThickness:70
+      }]
+    },
+    options:{
+      maintainAspectRatio:false,
+      scales:{ y:{ beginAtZero:true, ticks:{precision:0} } },
+      plugins:{
+        legend:{display:false},
+        datalabels:{ color:'#1C2733', anchor:'end', align:'top', font:{weight:'bold', size:12} }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function daysFromToday(iso){
+  if(!iso) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(iso+'T00:00:00');
+  return Math.round((target - today) / 86400000);
+}
+
+function renderAlerts(data){
+  const desiertos = data.filter(d=>d.estadoR==='Desierto');
+  const pendientesProximos = data.filter(d=>{
+    if(d.estadoR!=='Pendiente' || !d.fPublica) return false;
+    const diff = daysFromToday(d.fPublica);
+    return diff !== null && diff >= 0 && diff <= 15;
+  }).sort((a,b)=> (a.fPublica||'').localeCompare(b.fPublica||''));
+
+  const elD = document.getElementById('alertsDesiertos');
+  const elP = document.getElementById('alertsPendientes');
+
+  elD.innerHTML = desiertos.length ? desiertos.map(d=>`
+    <div class="alert-item">
+      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · Línea ${d.linea}</span></div>
+      <div class="a-amount">${fmtMoneyShort(d.montoEstimado)}</div>
+    </div>`).join('') : '<div class="empty-alert">No hay procesos desiertos en el periodo/filtro seleccionado.</div>';
+
+  elP.innerHTML = pendientesProximos.length ? pendientesProximos.map(d=>`
+    <div class="alert-item pending">
+      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · Publica: ${fmtDate(d.fPublica)}</span></div>
+      <div class="a-amount">${fmtMoneyShort(d.montoEstimado)}</div>
+    </div>`).join('') : '<div class="empty-alert">No hay procesos pendientes por iniciar en los próximos 15 días.</div>';
+
+  document.getElementById('alertCount').textContent = desiertos.length + pendientesProximos.length;
+}
+
+function renderDetailTable(data, searchTerm){
+  const term = (searchTerm||'').trim().toLowerCase();
+  const filtered = term ? data.filter(d=>
+    d.descripcion.toLowerCase().includes(term) || String(d.linea).toLowerCase().includes(term)
+  ) : data;
+
+  const tbody = document.getElementById('detailBody');
+  tbody.innerHTML = filtered.map(d=>{
+    const color = ESTADO_R_COLOR[d.estadoR] || '#868E96';
+    return `<tr>
+      <td>${d.areaSolicitante}</td>
+      <td class="col-linea">${d.linea}</td>
+      <td>${d.cbs}</td>
+      <td>${d.descripcion}</td>
+      <td class="col-monto">${fmtMoney(d.montoEstimado)}</td>
+      <td><span class="status-badge" style="background:${color}">${d.estado || d.estadoR}</span></td>
+      <td>${fmtDate(d.fPublica)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('detailCount').textContent = filtered.length;
+  document.getElementById('resultCount').textContent = `${filtered.length} de ${data.length} procesos`;
+
+  if(filtered.length === 0){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Sin resultados</td></tr>';
+  }
+}
+
+function renderFilterSummary(data){
+  const dir = document.getElementById('fDireccion').value;
+  const desde = document.getElementById('fMesDesde').value;
+  const hasta = document.getElementById('fMesHasta').value;
+  const dirLabel = dir === '__ALL__' ? 'Todas las direcciones' : dir;
+  document.getElementById('filterSummary').textContent =
+    `${dirLabel} · ${MES_LABEL[desde]||''} — ${MES_LABEL[hasta]||''} · ${data.length} procesos`;
+}
+
+function refreshAll(){
+  const data = getFilteredData();
+  renderKPIs(data);
+  renderComplianceTable(data);
+  renderDonut(data);
+  renderBarMensual(data);
+  renderBarModalidad(data);
+  renderBarProcedimientos(data);
+  renderAlerts(data);
+  renderDetailTable(data, document.getElementById('searchBox').value);
+  renderFilterSummary(data);
+}
+
+document.getElementById('fDireccion').addEventListener('change', refreshAll);
+document.getElementById('fMesDesde').addEventListener('change', refreshAll);
+document.getElementById('fMesHasta').addEventListener('change', refreshAll);
+document.getElementById('searchBox').addEventListener('input', ()=>{
+  const data = getFilteredData();
+  renderDetailTable(data, document.getElementById('searchBox').value);
+});
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  document.getElementById('fDireccion').value = '__ALL__';
+  const mesesPresentes = MES_ORDER.filter(m => RAW_DATA.some(d=>d.mes===m));
+  if(mesesPresentes.length){
+    document.getElementById('fMesDesde').value = mesesPresentes[0];
+    document.getElementById('fMesHasta').value = mesesPresentes[mesesPresentes.length-1];
+  }
+  document.getElementById('searchBox').value = '';
+  refreshAll();
+});
+
+document.getElementById('btnUpload').addEventListener('click', async ()=>{
+  const input = document.getElementById('fileInput');
+  const statusEl = document.getElementById('uploadStatus');
+  if(!input.files.length){
+    statusEl.textContent = 'Selecciona un archivo primero.';
+    statusEl.className = 'upload-status err';
+    return;
+  }
+  const btn = document.getElementById('btnUpload');
+  btn.disabled = true;
+  statusEl.textContent = 'Subiendo y procesando...';
+  statusEl.className = 'upload-status';
+
+  const formData = new FormData();
+  formData.append('file', input.files[0]);
+
+  try{
+    const res = await fetch('/upload', { method:'POST', body: formData });
+    const result = await res.json();
+    if(result.ok){
+      statusEl.textContent = `Listo: ${result.count} procesos cargados.`;
+      statusEl.className = 'upload-status ok';
+      await loadData();
+    } else {
+      statusEl.textContent = result.error || 'Error al procesar el archivo.';
+      statusEl.className = 'upload-status err';
+    }
+  } catch(err){
+    statusEl.textContent = 'Error de conexión al subir el archivo.';
+    statusEl.className = 'upload-status err';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+loadData();
+</script>
+
+</body>
+</html>
