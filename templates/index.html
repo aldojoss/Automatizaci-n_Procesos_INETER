@@ -55,8 +55,8 @@
   .upload-status.ok{color:#2F9E44;}
   .upload-status.err{color:var(--red);}
 
-  .filters{display:flex;gap:16px;align-items:flex-end;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;flex-wrap:wrap;}
-  .filters .field{display:flex;flex-direction:column;gap:6px;min-width:200px;}
+  .filters{display:flex;gap:14px;align-items:flex-end;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;flex-wrap:wrap;}
+  .filters .field{display:flex;flex-direction:column;gap:6px;min-width:170px;flex:1 1 170px;}
   .filters label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
   .filters select{padding:8px 10px;border-radius:6px;border:1px solid var(--border);font-size:14px;background:#fff;color:var(--text);}
   .filters .reset-btn{padding:8px 16px;border-radius:6px;border:1px solid var(--navy);background:#fff;color:var(--navy);font-size:13px;font-weight:600;cursor:pointer;height:36px;}
@@ -83,7 +83,8 @@
   .kpi-riesgo .kpi-value{color:var(--red);font-weight:800;}
 
   .panel{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
-  .panel h2{font-size:15px;margin:0 0 14px 0;color:var(--navy);font-weight:700;display:flex;align-items:center;gap:8px;}
+  .panel h2{font-size:15px;margin:0 0 16px 0;padding-bottom:10px;border-bottom:1px solid var(--border);color:var(--navy);font-weight:700;display:flex;align-items:center;gap:9px;}
+  .panel h2::before{content:"";display:inline-block;width:4px;height:16px;background:var(--navy);border-radius:2px;}
   .panel h2 .count-chip{background:var(--navy);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;}
 
   .alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -98,12 +99,21 @@
   .charts-row{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:16px;margin-bottom:16px;}
   .charts-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
   .chart-box{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
-  .chart-box h3{font-size:13.5px;margin:0 0 12px 0;color:var(--navy);font-weight:700;}
+  .chart-box h3{font-size:13.5px;margin:0 0 14px 0;padding-bottom:9px;border-bottom:1px solid var(--border);color:var(--navy);font-weight:700;display:flex;align-items:center;gap:9px;}
+  .chart-box h3::before{content:"";display:inline-block;width:4px;height:14px;background:var(--navy);border-radius:2px;}
   .chart-box .chart-wrap{position:relative;height:260px;}
 
-  table.compliance{width:100%;border-collapse:collapse;font-size:12.5px;}
-  table.compliance th{text-align:left;background:var(--navy);color:#fff;padding:7px 8px;font-weight:600;font-size:11px;text-transform:uppercase;}
-  table.compliance td{padding:6px 8px;border-bottom:1px solid var(--border);}
+  table.compliance{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
+  table.compliance th,
+  table.compliance td{width:12.5%;}
+  table.compliance th:first-child,
+  table.compliance td:first-child{width:15%;}
+  table.compliance th{text-align:center;background:var(--navy);color:#fff;padding:7px 6px;font-weight:600;font-size:10.5px;text-transform:uppercase;}
+  table.compliance th:first-child{text-align:left;}
+  table.compliance td{padding:5px 6px;border-bottom:1px solid var(--border);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  table.compliance td:first-child{text-align:left;font-weight:600;}
+  table.compliance tbody tr:nth-child(even):not(.total-row){background:#FAFBFD;}
+  table.compliance tr.total-row td{background:var(--navy);color:#fff;font-weight:700;border-bottom:none;border-top:2px solid var(--navy-dark);}
   .pct-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11.5px;color:#fff;}
 
   .detail-panel .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
@@ -113,7 +123,8 @@
   table.detail{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.detail thead th{position:sticky;top:0;background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;z-index:2;}
   table.detail tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
-  table.detail tbody tr:hover{background:#F8FAFD;}
+  table.detail tbody tr:nth-child(even){background:#FAFBFD;}
+  table.detail tbody tr:hover{background:#EEF3FA;}
   .status-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
   .col-monto{text-align:right;white-space:nowrap;}
   .col-linea{text-align:center;}
@@ -177,6 +188,10 @@
       <label for="fMesHasta">Periodo — hasta</label>
       <select id="fMesHasta"></select>
     </div>
+    <div class="field">
+      <label for="fEstadoR">Estado (resumen)</label>
+      <select id="fEstadoR"></select>
+    </div>
     <button class="reset-btn" id="btnReset">Limpiar filtros</button>
     <div class="updated" id="filterSummary"></div>
   </div>
@@ -225,6 +240,17 @@
     </div>
   </div>
 
+  <div class="charts-row2">
+    <div class="chart-box">
+      <h3>Procedimientos de Contratación (Cantidad)</h3>
+      <div class="chart-wrap" style="height:260px;"><canvas id="barProcedimientos"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Procesos por Modalidad de Contratación</h3>
+      <div class="chart-wrap" style="height:260px;"><canvas id="barModalidad"></canvas></div>
+    </div>
+  </div>
+
   <div class="panel">
     <h2>Alertas <span class="count-chip" id="alertCount">0</span></h2>
     <div class="alerts-grid">
@@ -236,17 +262,6 @@
         <div style="font-size:12px;font-weight:700;color:#E8590C;margin-bottom:8px;">PENDIENTES PRÓXIMOS A INICIAR (15 días)</div>
         <div id="alertsPendientes"></div>
       </div>
-    </div>
-  </div>
-
-  <div class="charts-row2">
-    <div class="chart-box">
-      <h3>Procedimientos de Contratación (Cantidad)</h3>
-      <div class="chart-wrap" style="height:220px;"><canvas id="barProcedimientos"></canvas></div>
-    </div>
-    <div class="chart-box">
-      <h3>Procesos por Modalidad de Contratación</h3>
-      <div class="chart-wrap" style="height:220px;"><canvas id="barModalidad"></canvas></div>
     </div>
   </div>
 
@@ -278,6 +293,7 @@
             <th>Descripción</th>
             <th style="text-align:right;">Monto Estimado</th>
             <th>Estado</th>
+            <th>Estado Detallado</th>
             <th>F. Pública</th>
           </tr>
         </thead>
@@ -315,7 +331,7 @@ const ESTADO_R_COLOR = {
 // dentro del Excel (hoja Reportes, chart1.xml) — mismo orden y mismos colores.
 const PROGRAMADOS_COLOR = "#FBE5D6";
 
-const ESTADO_8 = ["Publicada Convocatoria","En Recepción de Oferta","En Evaluación","Adjudicado","Desierto","Contrato Firmado","En Proceso de Mejora"];
+const ESTADO_8 = ["Publicada Convocatoria","En Recepción de Oferta","En Evaluación","Adjudicado","Desierto","Contrato Firmado"];
 const ESTADO_COLOR = {
   "Publicada Convocatoria":"#5CC9C9",
   "En Recepción de Oferta":"#14BDBE",
@@ -374,16 +390,23 @@ function populateFilters(){
     selDesde.value = mesesPresentes[0];
     selHasta.value = mesesPresentes[mesesPresentes.length-1];
   }
+
+  const estadosR = uniqueSorted(RAW_DATA.map(d=>d.estadoR).filter(Boolean));
+  const selEstadoR = document.getElementById('fEstadoR');
+  selEstadoR.innerHTML = '<option value="__ALL__">Todos</option>' +
+    estadosR.map(e=>`<option value="${e}">${e}</option>`).join('');
 }
 
 function getFilteredData(){
   const dir = document.getElementById('fDireccion').value;
   const desde = document.getElementById('fMesDesde').value;
   const hasta = document.getElementById('fMesHasta').value;
+  const estadoR = document.getElementById('fEstadoR').value;
   const idxDesde = MES_ORDER.indexOf(desde);
   const idxHasta = MES_ORDER.indexOf(hasta);
   return RAW_DATA.filter(d=>{
     if(dir !== '__ALL__' && d.areaSolicitante !== dir) return false;
+    if(estadoR !== '__ALL__' && d.estadoR !== estadoR) return false;
     if(!d.mes) return false;
     const idx = MES_ORDER.indexOf(d.mes);
     if(idxDesde <= idxHasta){ if(idx < idxDesde || idx > idxHasta) return false; }
@@ -463,17 +486,70 @@ function renderComplianceTable(data){
   });
   if(mesesPresentes.length===0){
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:16px;">Sin datos para el periodo seleccionado</td></tr>';
+    return;
   }
+
+  const totTotal = data.filter(d=>mesesPresentes.includes(d.mes)).length;
+  const totListos = data.filter(d=>d.estadoR==='Listos').length;
+  const totMejora = data.filter(d=>d.estadoR==='En Proceso de Mejora').length;
+  const totEnProg = data.filter(d=>d.estadoR==='En Prog.').length;
+  const totDesiertos = data.filter(d=>d.estadoR==='Desierto').length;
+  const totPendientes = data.filter(d=>d.estadoR==='Pendiente').length;
+  const totPctEjec = safeDiv(totListos+totDesiertos, totTotal);
+  const totPillColor = totPctEjec >= 0.7 ? '#2F9E44' : (totPctEjec >= 0.4 ? '#E8590C' : '#E03131');
+
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'total-row';
+  trTotal.innerHTML = `
+    <td>TOTAL</td>
+    <td>${totTotal}</td>
+    <td>${totListos}</td>
+    <td>${totMejora}</td>
+    <td>${totEnProg}</td>
+    <td>${totDesiertos}</td>
+    <td>${totPendientes}</td>
+    <td><span class="pct-pill" style="background:${totPillColor}">${fmtPct(totPctEjec)}</span></td>
+  `;
+  tbody.appendChild(trTotal);
+}
+
+// Calcula un máximo de eje con margen garantizado (30%) para que las etiquetas
+// de valor nunca queden cortadas, sin importar qué tan grande sea el número.
+function axisMaxWithHeadroom(maxVal){
+  if(!maxVal || maxVal <= 0) return 5;
+  return Math.ceil(maxVal * 1.3);
 }
 
 function renderDonut(data){
   const withEstado = data.filter(d => d.estado && ESTADO_8.includes(d.estado));
-  const counts = ESTADO_8.map(e => withEstado.filter(d=>d.estado===e).length);
+  const activeLabels = ESTADO_8.filter(e => withEstado.some(d => d.estado === e));
+  const counts = activeLabels.map(e => withEstado.filter(d=>d.estado===e).length);
   const ctx = document.getElementById('donutEstado').getContext('2d');
   if(charts.donut) charts.donut.destroy();
+
+  const centerTextPlugin = {
+    id: 'centerText',
+    afterDraw(chart){
+      const {ctx, chartArea:{left,right,top,bottom}} = chart;
+      const total = chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+      const centerX = (left+right)/2;
+      const centerY = (top+bottom)/2;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 26px Arial, sans-serif';
+      ctx.fillStyle = '#1C2733';
+      ctx.fillText(total, centerX, centerY - 8);
+      ctx.font = '11px Arial, sans-serif';
+      ctx.fillStyle = '#6B7785';
+      ctx.fillText('Total procesos', centerX, centerY + 14);
+      ctx.restore();
+    }
+  };
+
   charts.donut = new Chart(ctx, {
     type:'doughnut',
-    data:{ labels: ESTADO_8, datasets:[{ data: counts, backgroundColor: ESTADO_8.map(e=>ESTADO_COLOR[e]), borderWidth:2, borderColor:'#fff' }] },
+    data:{ labels: activeLabels, datasets:[{ data: counts, backgroundColor: activeLabels.map(e=>ESTADO_COLOR[e]), borderWidth:2, borderColor:'#fff' }] },
     options:{
       maintainAspectRatio:false,
       plugins:{
@@ -492,7 +568,7 @@ function renderDonut(data){
         } } }
       }
     },
-    plugins:[ChartDataLabels]
+    plugins:[ChartDataLabels, centerTextPlugin]
   });
 }
 
@@ -514,15 +590,17 @@ function renderBarMensual(data){
   ];
   const ctx = document.getElementById('barMensual').getContext('2d');
   if(charts.barMensual) charts.barMensual.destroy();
+  const maxValMensual = Math.max(0, ...datasets.flatMap(ds=>ds.data));
   charts.barMensual = new Chart(ctx, {
     type:'bar',
     data:{ labels: mesesPresentes.map(m=>MES_LABEL[m]), datasets },
     options:{
       maintainAspectRatio:false,
-      scales:{ x:{ grid:{display:false} }, y:{ beginAtZero:true, ticks:{precision:0} } },
+      layout:{ padding:{ top:24 } },
+      scales:{ x:{ grid:{display:false} }, y:{ beginAtZero:true, ticks:{precision:0}, max: axisMaxWithHeadroom(maxValMensual) } },
       plugins:{
         legend:{ position:'bottom', labels:{boxWidth:10, font:{size:9}} },
-        datalabels:{ color:'#1C2733', font:{weight:'bold', size:11}, anchor:'end', align:'top', formatter:(v)=> v>0 ? v : '' }
+        datalabels:{ color:'#1C2733', font:{weight:'bold', size:11}, anchor:'end', align:'top', clamp:true, formatter:(v)=> v>0 ? v : '' }
       }
     },
     plugins:[ChartDataLabels]
@@ -534,15 +612,17 @@ function renderBarModalidad(data){
   const counts = modalidades.map(m => data.filter(d=>d.modalidad===m).length);
   const ctx = document.getElementById('barModalidad').getContext('2d');
   if(charts.barModalidad) charts.barModalidad.destroy();
+  const maxValModalidad = Math.max(0, ...counts);
   charts.barModalidad = new Chart(ctx, {
     type:'bar',
     data:{ labels: modalidades, datasets:[{ label:'Procesos', data: counts, backgroundColor: '#1B2A4A', borderRadius:4, maxBarThickness:60 }] },
     options:{
       indexAxis:'y', maintainAspectRatio:false,
-      scales:{ x:{ beginAtZero:true, ticks:{precision:0} } },
+      layout:{ padding:{ right:28 } },
+      scales:{ x:{ beginAtZero:true, ticks:{precision:0}, max: axisMaxWithHeadroom(maxValModalidad) } },
       plugins:{
         legend:{display:false},
-        datalabels:{ color:'#1B2A4A', anchor:'end', align:'right', font:{weight:'bold', size:11} }
+        datalabels:{ color:'#1B2A4A', anchor:'end', align:'right', clamp:true, font:{weight:'bold', size:11} }
       }
     },
     plugins:[ChartDataLabels]
@@ -557,6 +637,7 @@ function renderBarProcedimientos(data){
 
   const ctx = document.getElementById('barProcedimientos').getContext('2d');
   if(charts.barProcedimientos) charts.barProcedimientos.destroy();
+  const maxValProc = Math.max(total, avanzando, desiertos, pendientes, 0);
   charts.barProcedimientos = new Chart(ctx, {
     type:'bar',
     data:{
@@ -569,10 +650,11 @@ function renderBarProcedimientos(data){
     },
     options:{
       maintainAspectRatio:false,
-      scales:{ y:{ beginAtZero:true, ticks:{precision:0} } },
+      layout:{ padding:{ top:30 } },
+      scales:{ y:{ beginAtZero:true, ticks:{precision:0}, max: axisMaxWithHeadroom(maxValProc) } },
       plugins:{
         legend:{display:false},
-        datalabels:{ color:'#1C2733', anchor:'end', align:'top', font:{weight:'bold', size:12} }
+        datalabels:{ color:'#1C2733', anchor:'end', align:'top', clamp:true, font:{weight:'bold', size:12} }
       }
     },
     plugins:[ChartDataLabels]
@@ -628,6 +710,7 @@ function renderDetailTable(data, searchTerm){
       <td>${d.descripcion}</td>
       <td class="col-monto">${fmtMoney(d.montoEstimado)}</td>
       <td><span class="status-badge" style="background:${color}">${d.estado || d.estadoR}</span></td>
+      <td>${d.estadoDet || '—'}</td>
       <td>${fmtDate(d.fPublica)}</td>
     </tr>`;
   }).join('');
@@ -636,7 +719,7 @@ function renderDetailTable(data, searchTerm){
   document.getElementById('resultCount').textContent = `${filtered.length} de ${data.length} procesos`;
 
   if(filtered.length === 0){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Sin resultados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">Sin resultados</td></tr>';
   }
 }
 
@@ -644,9 +727,12 @@ function renderFilterSummary(data){
   const dir = document.getElementById('fDireccion').value;
   const desde = document.getElementById('fMesDesde').value;
   const hasta = document.getElementById('fMesHasta').value;
+  const estadoR = document.getElementById('fEstadoR').value;
   const dirLabel = dir === '__ALL__' ? 'Todas las direcciones' : dir;
+  let extra = '';
+  if(estadoR !== '__ALL__') extra += ` · ${estadoR}`;
   document.getElementById('filterSummary').textContent =
-    `${dirLabel} · ${MES_LABEL[desde]||''} — ${MES_LABEL[hasta]||''} · ${data.length} procesos`;
+    `${dirLabel} · ${MES_LABEL[desde]||''} — ${MES_LABEL[hasta]||''}${extra} · ${data.length} procesos`;
 }
 
 function refreshAll(){
@@ -665,12 +751,14 @@ function refreshAll(){
 document.getElementById('fDireccion').addEventListener('change', refreshAll);
 document.getElementById('fMesDesde').addEventListener('change', refreshAll);
 document.getElementById('fMesHasta').addEventListener('change', refreshAll);
+document.getElementById('fEstadoR').addEventListener('change', refreshAll);
 document.getElementById('searchBox').addEventListener('input', ()=>{
   const data = getFilteredData();
   renderDetailTable(data, document.getElementById('searchBox').value);
 });
 document.getElementById('btnReset').addEventListener('click', ()=>{
   document.getElementById('fDireccion').value = '__ALL__';
+  document.getElementById('fEstadoR').value = '__ALL__';
   const mesesPresentes = MES_ORDER.filter(m => RAW_DATA.some(d=>d.mes===m));
   if(mesesPresentes.length){
     document.getElementById('fMesDesde').value = mesesPresentes[0];
