@@ -1,13 +1,13 @@
 """
-Parser del archivo .xlsm/.xlsx de Seguimiento al PAC 2026 (INETER).
-Lee la hoja PAC_III_MOD y devuelve una lista de registros normalizados,
+parser del archivo .xlsm/.xlsx de Seguimiento al PAC 2026 (INETER).
+Lee la hoja PAC y devuelve una lista de registros normalizados,
 listos para que el dashboard los consuma vía /api/data.
 """
 import re
 from datetime import datetime
 from openpyxl import load_workbook
 
-SHEET_NAME = "PAC_III_MOD"
+SHEET_NAME = "PAC"
 
 # Encabezados esperados -> nombre interno usado por el dashboard
 COLUMN_MAP = {
