@@ -1,17 +1,7 @@
 # Seguimiento al PAC 2026 · INETER
 
-Dashboard web con backend en Flask. A diferencia del HTML "standalone" original,
-esta versión permite **subir el archivo .xlsm directamente desde el navegador**
-y el dashboard se actualiza solo — sin pasar por Google Sheets.
 
-## Cómo funciona
 
-1. El usuario sube el `.xlsm`/`.xlsx` (hoja `PAC_III_MOD`) desde el panel superior del dashboard.
-2. El backend (`parser.py`) lo lee con `openpyxl`, normaliza texto (MODALIDAD, FUENTE FINANCIA.),
-   parsea fechas y montos, y guarda el resultado en `data/current.json`.
-3. El frontend (`templates/index.html`) consulta `/api/data` y pinta KPIs, tabla mensual,
-   gráficos (donut, barras apiladas, Procedimientos de Contratación, Modalidad) y alertas.
-4. Cada vez que se sube un nuevo archivo, todo el dashboard se recalcula automáticamente.
 
 ## Acceso con contraseña
 
