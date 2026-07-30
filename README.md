@@ -12,7 +12,7 @@ una llave compartida). Se configura con dos variables de entorno:
 - `FLASK_SECRET_KEY`: clave para firmar la sesión (pon cualquier texto largo y aleatorio).
 
 Si se define `DASHBOARD_PASSWORD`, el dashboard queda abierto (útil solo para
-desarrollo local). **En producción (Render) siempre debes configurarla.**
+desarrollo local). **En rndr se configura**
 
 
 
