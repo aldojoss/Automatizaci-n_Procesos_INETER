@@ -259,7 +259,7 @@
         <div id="alertsDesiertos"></div>
       </div>
       <div>
-        <div style="font-size:12px;font-weight:700;color:#E8590C;margin-bottom:4px;">PENDIENTES POR PUBLICAR</div>
+        <div style="font-size:12px;font-weight:700;color:#E8590C;margin-bottom:4px;">PENDIENTES Y EN PROGRAMACIÓN (vencidos o por publicar)</div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
           <label style="font-size:11px;color:var(--muted);">Desde <input type="date" id="fPendDesde" style="font-size:11px;padding:2px 4px;"></label>
           <label style="font-size:11px;color:var(--muted);">Hasta <input type="date" id="fPendHasta" style="font-size:11px;padding:2px 4px;"></label>
@@ -285,6 +285,7 @@
     <h2>Detalle de procesos <span class="count-chip" id="detailCount">0</span></h2>
     <div class="toolbar">
       <input type="text" id="searchBox" placeholder="Buscar por descripción o # de línea...">
+      <select id="fEstadoRBottom" style="max-width:220px;"></select>
       <div class="result-count" id="resultCount"></div>
     </div>
     <div class="table-scroll">
@@ -402,8 +403,12 @@ function populateFilters(){
 
   const estadosR = uniqueSorted(RAW_DATA.map(d=>d.estadoR).filter(Boolean));
   const selEstadoR = document.getElementById('fEstadoR');
-  selEstadoR.innerHTML = '<option value="__ALL__">Todos</option>' +
+  const estadoROptions = '<option value="__ALL__">Todos los estados</option>' +
     estadosR.map(e=>`<option value="${e}">${e}</option>`).join('');
+  selEstadoR.innerHTML = estadoROptions;
+
+  const selEstadoRBottom = document.getElementById('fEstadoRBottom');
+  selEstadoRBottom.innerHTML = estadoROptions;
 
   // Rango de fechas para "Pendientes por publicar": por defecto cubre TODAS las
   // fechas de publicación de los procesos pendientes (min a max), para que nunca
@@ -702,7 +707,7 @@ function renderAlerts(data){
   const pendHasta = pendHastaEl.value;
 
   const pendientesProximos = data.filter(d=>{
-    if(d.estadoR!=='Pendiente' || !d.fPublica) return false;
+    if((d.estadoR!=='Pendiente' && d.estadoR!=='En Prog.') || !d.fPublica) return false;
     if(pendDesde && d.fPublica < pendDesde) return false;
     if(pendHasta && d.fPublica > pendHasta) return false;
     return true;
@@ -722,12 +727,13 @@ function renderAlerts(data){
     const estadoTiempo = diff < 0
       ? `<strong style="color:#E03131;">Vencido hace ${Math.abs(diff)} día(s)</strong>`
       : (diff === 0 ? `<strong style="color:#E8590C;">Publica hoy</strong>` : `Publica en ${diff} día(s)`);
+    const badgeColor = ESTADO_R_COLOR[d.estadoR] || '#868E96';
     return `
     <div class="alert-item pending">
-      <div class="a-desc"><strong>${d.descripcion}</strong><span>${d.areaSolicitante} · ${d.modalidad || 'Sin modalidad'} · ${estadoTiempo} (${fmtDate(d.fPublica)})</span></div>
+      <div class="a-desc"><strong>${d.descripcion}</strong> <span style="display:inline-block;background:${badgeColor};color:#fff;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;">${d.estadoR}</span><span>${d.areaSolicitante} · ${d.modalidad || 'Sin modalidad'} · ${estadoTiempo} (${fmtDate(d.fPublica)})</span></div>
       <div class="a-amount">${fmtMoneyShort(d.montoEstimado)}</div>
     </div>`;
-  }).join('') : '<div class="empty-alert">No hay procesos pendientes en el rango de fechas seleccionado.</div>';
+  }).join('') : '<div class="empty-alert">No hay procesos pendientes o en programación en el rango de fechas seleccionado.</div>';
 
   document.getElementById('alertCount').textContent = desiertos.length + pendientesProximos.length;
 }
@@ -792,7 +798,14 @@ function refreshAll(){
 document.getElementById('fDireccion').addEventListener('change', refreshAll);
 document.getElementById('fMesDesde').addEventListener('change', refreshAll);
 document.getElementById('fMesHasta').addEventListener('change', refreshAll);
-document.getElementById('fEstadoR').addEventListener('change', refreshAll);
+document.getElementById('fEstadoR').addEventListener('change', ()=>{
+  document.getElementById('fEstadoRBottom').value = document.getElementById('fEstadoR').value;
+  refreshAll();
+});
+document.getElementById('fEstadoRBottom').addEventListener('change', ()=>{
+  document.getElementById('fEstadoR').value = document.getElementById('fEstadoRBottom').value;
+  refreshAll();
+});
 document.getElementById('fPendDesde').addEventListener('change', ()=> renderAlerts(getFilteredData()));
 document.getElementById('fPendHasta').addEventListener('change', ()=> renderAlerts(getFilteredData()));
 document.getElementById('searchBox').addEventListener('input', ()=>{
@@ -802,6 +815,7 @@ document.getElementById('searchBox').addEventListener('input', ()=>{
 document.getElementById('btnReset').addEventListener('click', ()=>{
   document.getElementById('fDireccion').value = '__ALL__';
   document.getElementById('fEstadoR').value = '__ALL__';
+  document.getElementById('fEstadoRBottom').value = '__ALL__';
   const mesesPresentes = MES_ORDER.filter(m => RAW_DATA.some(d=>d.mes===m));
   if(mesesPresentes.length){
     document.getElementById('fMesDesde').value = mesesPresentes[0];
