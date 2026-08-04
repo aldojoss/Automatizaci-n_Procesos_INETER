@@ -17,6 +17,9 @@ COLUMN_MAP = {
     "CBS": "cbs",
     "DESCRIPCION CONTRATACION": "descripcion",
     "MONTO ESTIMADO": "montoEstimado",
+    "MONTO ADJUDICADO": "montoAdjudicado",
+    "ECONOMÍA-DÉFICIT": "economiaDeficit",
+    "MONTO PAGADO": "montoPagado",
     "Estado": "estado",
     "EstadoDet": "estadoDet",
     "EstadoR": "estadoR",
@@ -79,6 +82,25 @@ def _clean_money(value):
         return float(text)
     except ValueError:
         return 0.0
+
+
+def _clean_money_or_none(value):
+    """Igual que _clean_money, pero devuelve None si la celda está vacía,
+    en vez de 0 — así el dashboard puede mostrar '—' en vez de 'C$0.00'
+    para procesos que todavía no tienen monto adjudicado/pagado."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip()
+    if text == "":
+        return None
+    text = re.sub(r"[^\d,.-]", "", text)
+    text = text.replace(",", "")
+    try:
+        return float(text)
+    except ValueError:
+        return None
 
 
 def _clean_date(value):
@@ -147,6 +169,9 @@ def parse_workbook(filepath):
             "cbs": _clean_text(get("cbs")),
             "descripcion": descripcion,
             "montoEstimado": _clean_money(get("montoEstimado")),
+            "montoAdjudicado": _clean_money_or_none(get("montoAdjudicado")),
+            "economiaDeficit": _clean_money_or_none(get("economiaDeficit")),
+            "montoPagado": _clean_money_or_none(get("montoPagado")),
             "estado": _clean_text(get("estado")),
             "estadoDet": _clean_text(get("estadoDet")),
             "estadoR": _clean_text(get("estadoR")),
