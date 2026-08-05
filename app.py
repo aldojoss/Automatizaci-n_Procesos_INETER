@@ -17,9 +17,9 @@ os.makedirs(DATA_DIR, exist_ok=True)
 MAX_UPLOAD_MB = 15
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
-# --- Autenticación simple (una sola contraseña compartida) ---
-# La contraseña y la clave de sesión se leen de variables de entorno,
-# NUNCA se escriben aquí en el código ni se suben a git.
+# autenticacion
+# la contra se lee de la clave de entorno,
+# .
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-cambia-esto-en-produccion")
 DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD")
 
@@ -36,7 +36,7 @@ def login_required(view_func):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if not DASHBOARD_PASSWORD:
-        # Si no se configuró contraseña (ej. desarrollo local sin variable de entorno),
+        # si no se configuró contraseña ,
         # no bloqueamos el acceso para no romper el flujo local.
         session["authenticated"] = True
         return redirect(url_for("index"))
@@ -119,7 +119,7 @@ def upload():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    # use_reloader=False es importante: si no, el servidor se reinicia solo
+    # use_reloader=false si no, el servidor se reinicia solo
     # cada vez que se sube un archivo (porque el upload escribe data/current.json
     # dentro de la carpeta del proyecto, y el reloader lo detecta como cambio de
     # código), cortando la conexión a mitad de la subida.

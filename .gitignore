@@ -13,7 +13,7 @@ env/
 .env
 .flaskenv
 
-# Datos generados en tiempo de ejecución (privados, no deben ir a git)
+# Datos generados en tiempo de ejecución 
 data/current.json
 data/_upload_tmp.xlsm
 

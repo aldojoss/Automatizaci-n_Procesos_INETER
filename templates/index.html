@@ -188,10 +188,6 @@
       <label for="fMesHasta">Periodo — hasta</label>
       <select id="fMesHasta"></select>
     </div>
-    <div class="field">
-      <label for="fEstadoR">Estado (resumen)</label>
-      <select id="fEstadoR"></select>
-    </div>
     <button class="reset-btn" id="btnReset">Limpiar filtros</button>
     <div class="updated" id="filterSummary"></div>
   </div>
@@ -402,18 +398,14 @@ function populateFilters(){
   }
 
   const estadosR = uniqueSorted(RAW_DATA.map(d=>d.estadoR).filter(Boolean));
-  const selEstadoR = document.getElementById('fEstadoR');
-  const estadoROptions = '<option value="__ALL__">Todos los estados</option>' +
-    estadosR.map(e=>`<option value="${e}">${e}</option>`).join('');
-  selEstadoR.innerHTML = estadoROptions;
-
   const selEstadoRBottom = document.getElementById('fEstadoRBottom');
-  selEstadoRBottom.innerHTML = estadoROptions;
+  selEstadoRBottom.innerHTML = '<option value="__ALL__">Todos los estados</option>' +
+    estadosR.map(e=>`<option value="${e}">${e}</option>`).join('');
 
   // Rango de fechas para "Pendientes por publicar": por defecto cubre TODAS las
   // fechas de publicación de los procesos pendientes (min a max), para que nunca
   // salga vacío por defecto. El usuario puede angostar el rango si quiere.
-  const pendFechas = RAW_DATA.filter(d=>d.estadoR==='Pendiente' && d.fPublica).map(d=>d.fPublica).sort();
+  const pendFechas = RAW_DATA.filter(d=>(d.estadoR==='Pendiente'||d.estadoR==='En Prog.') && d.fPublica).map(d=>d.fPublica).sort();
   const fPendDesde = document.getElementById('fPendDesde');
   const fPendHasta = document.getElementById('fPendHasta');
   if(pendFechas.length){
@@ -426,12 +418,10 @@ function getFilteredData(){
   const dir = document.getElementById('fDireccion').value;
   const desde = document.getElementById('fMesDesde').value;
   const hasta = document.getElementById('fMesHasta').value;
-  const estadoR = document.getElementById('fEstadoR').value;
   const idxDesde = MES_ORDER.indexOf(desde);
   const idxHasta = MES_ORDER.indexOf(hasta);
   return RAW_DATA.filter(d=>{
     if(dir !== '__ALL__' && d.areaSolicitante !== dir) return false;
-    if(estadoR !== '__ALL__' && d.estadoR !== estadoR) return false;
     if(!d.mes) return false;
     const idx = MES_ORDER.indexOf(d.mes);
     if(idxDesde <= idxHasta){ if(idx < idxDesde || idx > idxHasta) return false; }
@@ -739,10 +729,13 @@ function renderAlerts(data){
 }
 
 function renderDetailTable(data, searchTerm){
+  const estadoR = document.getElementById('fEstadoRBottom').value;
+  let filtered = estadoR !== '__ALL__' ? data.filter(d=>d.estadoR===estadoR) : data;
+
   const term = (searchTerm||'').trim().toLowerCase();
-  const filtered = term ? data.filter(d=>
+  filtered = term ? filtered.filter(d=>
     d.descripcion.toLowerCase().includes(term) || String(d.linea).toLowerCase().includes(term)
-  ) : data;
+  ) : filtered;
 
   const tbody = document.getElementById('detailBody');
   tbody.innerHTML = filtered.map(d=>{
@@ -774,12 +767,9 @@ function renderFilterSummary(data){
   const dir = document.getElementById('fDireccion').value;
   const desde = document.getElementById('fMesDesde').value;
   const hasta = document.getElementById('fMesHasta').value;
-  const estadoR = document.getElementById('fEstadoR').value;
   const dirLabel = dir === '__ALL__' ? 'Todas las direcciones' : dir;
-  let extra = '';
-  if(estadoR !== '__ALL__') extra += ` · ${estadoR}`;
   document.getElementById('filterSummary').textContent =
-    `${dirLabel} · ${MES_LABEL[desde]||''} — ${MES_LABEL[hasta]||''}${extra} · ${data.length} procesos`;
+    `${dirLabel} · ${MES_LABEL[desde]||''} — ${MES_LABEL[hasta]||''} · ${data.length} procesos`;
 }
 
 function refreshAll(){
@@ -798,13 +788,8 @@ function refreshAll(){
 document.getElementById('fDireccion').addEventListener('change', refreshAll);
 document.getElementById('fMesDesde').addEventListener('change', refreshAll);
 document.getElementById('fMesHasta').addEventListener('change', refreshAll);
-document.getElementById('fEstadoR').addEventListener('change', ()=>{
-  document.getElementById('fEstadoRBottom').value = document.getElementById('fEstadoR').value;
-  refreshAll();
-});
 document.getElementById('fEstadoRBottom').addEventListener('change', ()=>{
-  document.getElementById('fEstadoR').value = document.getElementById('fEstadoRBottom').value;
-  refreshAll();
+  renderDetailTable(getFilteredData(), document.getElementById('searchBox').value);
 });
 document.getElementById('fPendDesde').addEventListener('change', ()=> renderAlerts(getFilteredData()));
 document.getElementById('fPendHasta').addEventListener('change', ()=> renderAlerts(getFilteredData()));
@@ -814,14 +799,13 @@ document.getElementById('searchBox').addEventListener('input', ()=>{
 });
 document.getElementById('btnReset').addEventListener('click', ()=>{
   document.getElementById('fDireccion').value = '__ALL__';
-  document.getElementById('fEstadoR').value = '__ALL__';
   document.getElementById('fEstadoRBottom').value = '__ALL__';
   const mesesPresentes = MES_ORDER.filter(m => RAW_DATA.some(d=>d.mes===m));
   if(mesesPresentes.length){
     document.getElementById('fMesDesde').value = mesesPresentes[0];
     document.getElementById('fMesHasta').value = mesesPresentes[mesesPresentes.length-1];
   }
-  const pendFechas = RAW_DATA.filter(d=>d.estadoR==='Pendiente' && d.fPublica).map(d=>d.fPublica).sort();
+  const pendFechas = RAW_DATA.filter(d=>(d.estadoR==='Pendiente'||d.estadoR==='En Prog.') && d.fPublica).map(d=>d.fPublica).sort();
   if(pendFechas.length){
     document.getElementById('fPendDesde').value = pendFechas[0];
     document.getElementById('fPendHasta').value = pendFechas[pendFechas.length-1];
